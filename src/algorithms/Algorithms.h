@@ -2,6 +2,7 @@
 #define ALGORITHMS_H
 
 #include "../util/types/Types.h"
+#include "Components.h"
 
 class IRobotController { 
     public:
@@ -24,6 +25,7 @@ class IMotorController {
         virtual void Setup() = 0;
         virtual void UpdateMoveState(float dt, RobotPosition position) = 0;
         virtual MoveState GetMoveState() = 0;
+        virtual void Stop() = 0;
         virtual float GetDistanceCovered() = 0;
         virtual float GetTargetDistance() = 0;
         virtual void SetGyroNull() = 0;
@@ -37,7 +39,7 @@ class IPositionTracker {
     public:
         virtual ~IPositionTracker() = default;
         virtual void Setup() = 0;
-        virtual void Process(RobotPosition* RobotPosition) = 0; 
+        virtual void Process() = 0; 
 };
 
 class IObjectDetectorAlgorithm {
@@ -52,6 +54,7 @@ class MotorController : IMotorController {
         void Setup() override;
         void UpdateMoveState(float dt, RobotPosition position) override;
         MoveState GetMoveState() override;
+        void Stop() override;
         float GetDistanceCovered() override;
         float GetTargetDistance() override;
         void SetGyroNull() override;
@@ -60,20 +63,52 @@ class MotorController : IMotorController {
         void RotateToAngle(int wantedAngle) override;
         void RotateDegrees(int degrees) override;
 
+        v3f pid {0.0f, 0.0f, 0.0f};
+        v3f pidSide {0.0f, 0.0f, 0.0f};
+
     private:
+        float SideCorrection(float dt, int lSensor, int rSensor);
+        void UpdateMotor(float dt, RobotPosition position);
+
         MoveState moveState = Idle;
+        int gyroAngle = 0;
+        int targetAngle = 0;
         float distanceCovered = 0.0f;
         float targetDistance = 0.0f;
+        int targetRpm = 0, wantedRpm = 0;
+        float prevErrorR, prevErrorL, prevErrorT;
+        float integralR, integralL, integralT;
+        float integralSat = 1.0f, integralTSat = 1.5f;
+        float prevSideError, integralSide;
+        
+
 };
 
 class PositionTracker : IPositionTracker {
     public:
-        void Setup() override;
-        void Process(RobotPosition* RobotPosition) override;
 
+        PositionTracker(float cellSize);
+    
+        void Setup() override;
+        void Process() override;
+        void SetEncoderPins(uint8_t LA, uint8_t LB, uint8_t RA, uint8_t RB);
+        void SetGyro(Gyro* gyro);
+        void ResetPosition();
+        void ResetGyro();
+
+
+        RobotPosition GetPosition() const;
+        float GetDistanceCovered() const;
+        v2f GetGridPos() const;
     private:
-        RobotPosition lastPosition;
-        float lastDistanceCovered = 0.0f;
+        RobotPosition robot;
+        v2i lastPosition;
+        float cellSize;
+        float distance = 0.0f;
+
+        Gyro* gyro = nullptr;
+        Encoder leftEncoder, rightEncoder;
+        uint8_t LA, LB, RA, RB;
 };
 
 

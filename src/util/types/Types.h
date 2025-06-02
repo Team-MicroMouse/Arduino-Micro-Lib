@@ -14,7 +14,7 @@ struct v2f;
 struct v3f;
 
 struct v2i { 
-    int x, y;
+    uint8_t x, y;
 
     v2i() : x(0), y(0) {}
     v2i(int x, int y) : x(x), y(y) {}
