@@ -25,7 +25,7 @@ float CalibrateGyro(int samples) {
       delay(1);
     }
     float res = (float)sum / samples / 131.0f;
-    return res;
+    return res; 
 }
 
 uint8_t Gyro::ReadValue() {

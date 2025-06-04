@@ -8,13 +8,6 @@ void PositionTracker::Setup() {
     rightEncoder.Setup();
 }
 
-void PositionTracker::SetEncoderPins(uint8_t LA, uint8_t LB, uint8_t RA, uint8_t RB) {
-    this->LA = LA;
-    this->LB = LB;
-    this->RA = RA;
-    this->RB = RB;
-}
-
 void PositionTracker::SetGyro(Gyro* gyro) {
     this->gyro = gyro;
 }

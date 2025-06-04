@@ -32,7 +32,8 @@ void MotorController::Stop() {
     moveState = Idle;
     wantedRpm = 0;
     
-    // Set throttle to zero for both motors
+    lMotor->SetThrottle(0);
+    rMotor->SetThrottle(0);
 }
 
 float MotorController::GetDistanceCovered() {
@@ -52,7 +53,6 @@ void MotorController::SetRpm(int rpm) {
 }
 
 void MotorController::MoveDistance(float distance) {
-    // Command the robot to move a specific distance
     targetDistance = distance;
     moveState = Moving;
 }
@@ -84,33 +84,35 @@ void MotorController::UpdateMotor(float dt, RobotPosition position) {
             float errorT = AngleDifference(gyroAngle, targetAngle);
             integralT = constrain(integralT + errorT * dt, -integralTSat, integralTSat);
             float derivativeT = (errorT - prevErrorT) / dt;
-            float outputT = pid.z * errorT + pid.y * integralT + pid.x * derivativeT; // add pid variables here
+            float outputT = pid.z * errorT + pid.y * integralT + pid.x * derivativeT; 
             prevErrorT = errorT;
 
             int throttle = round(abs(outputT));
             int dir = outputT >= 0 ? 1: -1;
 
-            //set motor throttle.
+            lMotor->SetThrottle(-dir * throttle);
+            rMotor->SetThrottle(dir * throttle);
             break;
         case Moving: 
             float sideCorrection = SideCorrection(dt, position.position.x, position.position.y);
 
 
-            float errorL = wantedRpm - lMotor.CurrentRPM();
+            float errorL = wantedRpm - lMotor->currentThrottle();
             integralL = constrain(integralL + errorL * dt, -integralSat, integralSat);
             float derivativeL = (errorL - prevErrorL) / dt;
             float outputL = pid.x * errorL + pid.y * integralL + pid.x * derivativeL; 
-            outputL = constrain(outputL - sideCorrection, -maxRpm, maxRpm);
+            outputL = constrain(outputL - sideCorrection, -lMotor->maxThrotthle(), lMotor->maxThrotthle());
             prevErrorL = errorL;
 
-            float errorR = wantedRpm - rMotor.CurrentRPM();
+            float errorR = wantedRpm - rMotor->currentThrottle();
             integralR = constrain(integralR + errorR * dt, -integralSat, integralSat);
             float derivativeR = (errorR - prevErrorR) / dt;
             float outputR = pid.x * errorR + pid.y * integralR + pid.z * derivativeR;
-            outputR = constrain(outputR + sideCorrection, -maxRpm, maxRpm);
+            outputR = constrain(outputR + sideCorrection, -rMotor->maxThrotthle(), rMotor->maxThrotthle());
             prevErrorR = errorR;
 
-            //set motor throttle.
+            lMotor->SetThrottle(round(outputL));
+            rMotor->SetThrottle(round(outputR));
             break;
         case Idle:
             prevErrorL = 0.0f;
@@ -129,7 +131,7 @@ float MotorController::SideCorrection(float dt, int lSensor, int rSensor) {
     
     integralSide = constrain(integralSide + error * dt, -integralSat, integralSat);
     float derivative = (error - prevSideError) / dt;
-    float output = pidSide.x * error + pidSide.y * integralSide + pidSide.z * derivative; // add pid variables here
+    float output = pidSide.x * error + pidSide.y * integralSide + pidSide.z * derivative;
     prevSideError = error;
 
     return output;
