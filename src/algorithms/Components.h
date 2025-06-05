@@ -2,9 +2,10 @@
 #define COMPONENTS_H
 
 #include "../util/types/Types.h"
-//#include <Wire.h>
-//#include <Adafruit_MPU6050.h>
-//#include <Adafruit_VL6180X.h>
+#include <Wire.h>
+#include <Adafruit_MPU6050.h>
+#include <Adafruit_VL6180X.h>
+#include <Adafruit_Sensor.h>
 
 class ISensor { 
     public:
@@ -30,11 +31,11 @@ class IMotor {
 
 class Gyro : ISensor { 
     public:
-        virtual ~Gyro() = default;
-        virtual bool Setup(uint8_t channel) override;
-        virtual uint8_t ReadValue() override;
-        virtual uint8_t ReadStatus() override;
-        virtual void Reset() = 0;
+        ~Gyro() = default;
+        bool Setup(uint8_t channel) override;
+        uint8_t ReadValue() override;
+        uint8_t ReadStatus() override;
+        void Reset();
     private: 
         float calibrateGyro(int samples);
 
