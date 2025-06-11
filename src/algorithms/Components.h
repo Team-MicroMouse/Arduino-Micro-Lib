@@ -37,7 +37,8 @@ class Gyro : ISensor {
         uint8_t ReadStatus() override;
         void Reset();
     private: 
-        float calibrateGyro(int samples);
+        float calibrateGyro(int samples, Adafruit_MPU6050 &sensor);
+        float Wrap360(float angle);
 
         uint8_t channel;
         Adafruit_MPU6050 sensor;
@@ -49,10 +50,10 @@ class Gyro : ISensor {
 
 class TofSensor : ISensor {
     public:
-        virtual ~TofSensor() = default;
-        virtual bool Setup(uint8_t channel) override;
-        virtual uint8_t ReadValue() override;
-        virtual uint8_t ReadStatus() override;
+         ~TofSensor() = default;
+        bool Setup(uint8_t channel) override;
+        uint8_t ReadValue() override;
+        uint8_t ReadStatus() override;
     private:
         uint8_t channel;
         Adafruit_VL6180X sensor;
@@ -63,13 +64,15 @@ class Encoder {
         Encoder(uint8_t channelA, uint8_t channelB, float ppr, float circumference, float interval);
         void Setup();
         void Process();
+        static void IRAM_ATTR isr();
 
         float speed;
         float distance;
     private:
-        void PulseCounter();
+        void IRAM_ATTR CountPulse();
 
-        int pulses = 0;
+        static Encoder* instance;
+        volatile int pulses = 0;
         uint8_t channelA;
         uint8_t channelB;
         float ppr; 

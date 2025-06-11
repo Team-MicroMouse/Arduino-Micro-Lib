@@ -19,6 +19,7 @@ void setup() {
     Motor leftMotor = robot.CreateMotor(0, 1);
     Motor rightMotor = robot.CreateMotor(2, 3);
 
+    
     motorController = robot.motorController(&leftMotor, &rightMotor, &lhs, &rhs);
     positionTracker(0, 1, 2, 3, CELL_SIZE_F);
 }

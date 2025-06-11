@@ -104,8 +104,5 @@ struct Map {
     MapCell* get_cell(v2i pos) const;
 };
 
-struct v2iHasher { 
-    size_t operator()(const v2i& v) const;
-};
 
 #endif

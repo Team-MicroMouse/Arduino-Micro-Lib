@@ -1,5 +1,7 @@
 #include "Components.h"
 
+Encoder* Encoder::instance = nullptr;
+
 void MPSelect(uint8_t channel) {
     if (channel > 7) return;
     Wire.beginTransmission(0x70); // Multiplexer I2C address
@@ -12,11 +14,11 @@ bool Gyro::Setup(uint8_t channel) {
     delay(5);
     MPSelect(channel);
     bool success = sensor.begin();
-    bias = calibrateGyro(250);
+    bias = calibrateGyro(250, sensor);
     return success;
 }
 
-float CalibrateGyro(int samples) {
+float CalibrateGyro(int samples, Adafruit_MPU6050 &sensor) {
     long sum = 0; 
     for (int i = 0; i < samples; i++) {
       sensors_event_t a, g, temp;
@@ -44,7 +46,7 @@ uint8_t Gyro::ReadValue() {
     lastTime = now;
 
     totalAngle += gyroZ * dt;
-    totalAngle = wrap360(totalAngle);
+    totalAngle = Wrap360(totalAngle);
 
     return (int)totalAngle;
 }
@@ -72,7 +74,7 @@ uint8_t TofSensor::ReadStatus() {
     return sensor.readRangeStatus();
 }
 
-float wrap360(float angle) {
+float Gyro::Wrap360(float angle) {
   while (angle < 0.0f) angle += 360.0f;
   while (angle >= 360.0f) angle -= 360.0f;
   return angle;
@@ -81,16 +83,23 @@ float wrap360(float angle) {
 Encoder::Encoder(uint8_t channelA, uint8_t channelB, float ppr, float circumference, float interval)
     : channelA(channelA), channelB(channelB), ppr(ppr), circumference(circumference), interval(interval){}
 
-void Encoder:: PulseCounter() {
+void IRAM_ATTR Encoder::CountPulse() {
     pulses += (digitalRead(channelA)) ? 1 : -1;
+}
+
+void IRAM_ATTR Encoder::isr() {
+    if (instance) {
+        instance->CountPulse();
+    }
 }
 
 void Encoder::Setup() {
     pinMode(channelA, INPUT);
     pinMode(channelB, INPUT);
 
-    attachInterrupt(digitalPinToInterrupt(channelB), PulseCounter, RISING);
+    attachInterrupt(digitalPinToInterrupt(channelB), isr, RISING);
 
+    instance = this;
     speed = 0.0f;
     distance = 0.0f;
 }

@@ -80,7 +80,7 @@ void MotorController::UpdateMotor(float dt, RobotPosition position) {
     if (targetRpm <= 0) return;
 
     switch(moveState) {
-        case Turning:
+        case Turning: {
             float errorT = AngleDifference(gyroAngle, targetAngle);
             integralT = constrain(integralT + errorT * dt, -integralTSat, integralTSat);
             float derivativeT = (errorT - prevErrorT) / dt;
@@ -92,8 +92,9 @@ void MotorController::UpdateMotor(float dt, RobotPosition position) {
 
             lMotor->SetThrottle(-dir * throttle);
             rMotor->SetThrottle(dir * throttle);
+            }
             break;
-        case Moving: 
+        case Moving: {
             float sideCorrection = SideCorrection(dt, position.position.x, position.position.y);
 
 
@@ -113,11 +114,13 @@ void MotorController::UpdateMotor(float dt, RobotPosition position) {
 
             lMotor->SetThrottle(round(outputL));
             rMotor->SetThrottle(round(outputR));
+            }   
             break;
-        case Idle:
+        case Idle:{
             prevErrorL = 0.0f;
             prevErrorR = 0.0f;
             prevErrorT = 0.0f;
+            }
             break;
     }
 }
@@ -137,6 +140,6 @@ float MotorController::SideCorrection(float dt, int lSensor, int rSensor) {
     return output;
 }
 
-float AngleDifference(int a, int b) {
+float MotorController::AngleDifference(int a, int b) {
     return (a- b + 540) % 360 - 180;
 }

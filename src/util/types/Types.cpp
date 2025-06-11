@@ -152,8 +152,3 @@ MapCell* Map::get_cell(v2i pos) const {
     if (!is_in_bounds(pos)) return nullptr;
     return &cells[pos.y * size.x + pos.x];
 }
-
-// Hash
-size_t v2iHasher::operator()(const v2i& v) const {
-    return ((uint32_t)v.x << 16) | ((uint32_t)v.y & 0xFFFF);
-}

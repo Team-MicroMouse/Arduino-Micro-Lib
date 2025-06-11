@@ -22,6 +22,12 @@ Motor MicroLib::CreateMotor(uint8_t pwmChannel, uint8_t dirChannel) {
     return motor;
 }
 
+Encoder MicroLib::CreateEncoder(uint8_t channelA, uint8_t channelB, uint8_t ppr, float circumference, float interval) {
+    Encoder encoder(channelA, channelB, ppr, circumference, interval);
+    encoder.Setup();
+    return encoder;
+}
+
 MotorController MicroLib::motorController(Motor* leftMotor, Motor* rightMotor, TofSensor* leftSensor, TofSensor* rightSensor) {
     MotorController controller;
     controller.SetMotors(leftMotor, rightMotor);
@@ -29,9 +35,7 @@ MotorController MicroLib::motorController(Motor* leftMotor, Motor* rightMotor, T
     return controller;
 }
 
-PositionTracker MicroLib::positionTracker(uint8_t LA, uint8_t LB, uint8_t RA, uint8_t RB, float cellSize) {
-    PositionTracker tracker(cellSize);
-    tracker.SetEncoderPins(LA, LB, RA, RB);
-    return tracker;
+PositionTracker MicroLib::positionTracker(Encoder leftEncoder, Encoder rightEncoder, float cellSize) {
+    return PositionTracker(leftEncoder, rightEncoder, cellSize);
 }
 

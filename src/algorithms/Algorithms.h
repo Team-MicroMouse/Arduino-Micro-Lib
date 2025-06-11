@@ -79,6 +79,7 @@ class MotorController : IMotorController {
     private:
         float SideCorrection(float dt, int lSensor, int rSensor);
         void UpdateMotor(float dt, RobotPosition position);
+        float AngleDifference(int a, int b);
 
         MoveState moveState = Idle;
         Motor* lMotor = nullptr;
@@ -95,22 +96,15 @@ class MotorController : IMotorController {
         float integralSat = 1.0f, integralTSat = 1.5f;
         float prevSideError, integralSide;
         
-
 };
 
 class PositionTracker : IPositionTracker {
     public:
+        PositionTracker(Encoder leftEncoder, Encoder rightEncoder, float cellSize) 
+            : leftEncoder(leftEncoder), rightEncoder(rightEncoder), cellSize(cellSize) {}
 
-        PositionTracker(float cellSize);
-    
         void Setup() override;
         void Process() override;
-        void SetEncoderPins(uint8_t LA, uint8_t LB, uint8_t RA, uint8_t RB) {
-            this->LA = LA;
-            this->LB = LB;
-            this->RA = RA;
-            this->RB = RB;
-        };
         void SetGyro(Gyro* gyro);
         void ResetPosition();
         void ResetGyro();

@@ -1,11 +1,11 @@
 #include "../algorithms/Algorithms.h" 
 
 void PositionTracker::Setup() {
-    
-    leftEncoder = Encoder(LA, LB, 7, (2 * PI * 2.2f), 60);
     leftEncoder.Setup();
-    rightEncoder = Encoder(RA, RB, 7, (2 * PI * 2.2f), 60);
     rightEncoder.Setup();
+    robot.position = v2i(0, 0);
+    robot.angle = 0;
+    distance = 0.0f;
 }
 
 void PositionTracker::SetGyro(Gyro* gyro) {
