@@ -69,6 +69,18 @@ v2i v2f::roundToV2i() const {
     return v2i((int)roundf(x), (int)roundf(y));
 }
 
+float v2f::dot(v2f rhs) const {
+    return x * rhs.x + y * rhs.y;
+}
+
+float v2f::det(v2f rhs) const {
+    return x * rhs.y - y * rhs.x;
+}   
+
+float v2f::signedAngle(v2f rhs) const {
+    return atan2f(det(rhs), dot(rhs));
+}
+
 v2f v2f::explode() const {
     float xAbs = fabsf(x), yAbs = fabsf(y);
     return v2f(x * (xAbs > yAbs), y * (yAbs > xAbs));

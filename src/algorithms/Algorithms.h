@@ -18,7 +18,8 @@ class IMotorController {
         enum MoveState: int {
             Idle,
             Turning, 
-            Moving
+            Moving,
+            MovingToGridPos
         };
     
         virtual ~IMotorController() = default;
@@ -31,6 +32,7 @@ class IMotorController {
         virtual void SetGyroNull() = 0;
         virtual void SetRpm(int rpm) = 0;
         virtual void MoveDistance(float distance) = 0;
+        virtual void MoveToGridPos(v2i target, float cellSize) = 0;
         virtual void RotateToAngle(int wantedAngle) = 0;
         virtual void RotateDegrees(int degrees) = 0;
 };
@@ -60,6 +62,7 @@ class MotorController : IMotorController {
         void SetGyroNull() override;
         void SetRpm(int rpm) override;
         void MoveDistance(float distance) override;
+        void MoveToGridPos(v2i target, float cellSize) override;
         void RotateToAngle(int wantedAngle) override;
         void RotateDegrees(int degrees) override;
 
@@ -81,6 +84,7 @@ class MotorController : IMotorController {
         void UpdateMotor(float dt, RobotPosition position);
         float AngleDifference(int a, int b);
 
+        RobotPosition position;
         MoveState moveState = Idle;
         Motor* lMotor = nullptr;
         Motor* rMotor = nullptr;
@@ -89,6 +93,7 @@ class MotorController : IMotorController {
         int gyroAngle = 0;
         int targetAngle = 0;
         float distanceCovered = 0.0f;
+        float distanceToGrid = 0.0f;
         float targetDistance = 0.0f;
         int targetRpm = 0, wantedRpm = 0;
         float prevErrorR, prevErrorL, prevErrorT;

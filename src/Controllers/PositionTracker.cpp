@@ -5,6 +5,7 @@ void PositionTracker::Setup() {
     rightEncoder.Setup();
     robot.position = v2i(0, 0);
     robot.angle = 0;
+    robot.gridPos = robot.position.gridPos();
     distance = 0.0f;
 }
 
@@ -23,6 +24,12 @@ void PositionTracker::Process() {
     robot.position = robot.position + v2i(dx, dy);
     robot.angle = static_cast<int>(angle) % 360;
     distance += movement;
+}
+
+RobotPosition PositionTracker::GetPosition() const {
+    RobotPosition pos = robot;
+    pos.gridPos = GetGridPos();
+    return pos;
 }
 
 float PositionTracker::GetDistanceCovered() const {

@@ -54,6 +54,10 @@ struct v2f {
     v2f explode() const;
     v2f normalize() const; 
 
+    float dot(v2f rhs) const;
+    float det(v2f rhs) const;
+    float signedAngle(v2f rhs) const;
+
     v2f operator+(const v2f & b) const;
     v2f operator-(const v2f & b) const;
     v2f operator*(float b) const;
@@ -73,7 +77,8 @@ struct Guid { uint64_t a, b; };
 
 struct RobotPosition {
     v2i position; 
-    int angle; 
+    int angle;
+    v2i gridPos;
 };
 
 struct MapCell {

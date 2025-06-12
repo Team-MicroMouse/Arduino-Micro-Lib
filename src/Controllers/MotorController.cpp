@@ -11,15 +11,23 @@ void MotorController::UpdateMoveState(float dt, RobotPosition position) {
         case Moving:
             if (distanceCovered >= targetDistance) {
                 moveState = Idle;
-                wantedRpm = 0;
             } 
             break;
 
         case Turning:
             if (abs(prevErrorT) < 0.2f) {
                 moveState = Idle;
-                wantedRpm = 0;
             }
+            break;
+        case MovingToGridPos: 
+            if (abs(prevErrorT) < 0.2f) {
+                if (distanceToGrid < 0.1f) moveState = Idle;
+
+                MoveDistance(distanceToGrid);
+            }
+            break;
+        case Idle:
+            wantedRpm = 0; 
             break;
     }
 }
@@ -57,6 +65,17 @@ void MotorController::MoveDistance(float distance) {
     moveState = Moving;
 }
 
+void MotorController::MoveToGridPos(v2i target, float cellSize) {
+    v2f targetPos = v2f(target.x * cellSize, target.y * cellSize);
+    v2f direction (targetPos - position.gridPos).normalize();
+
+    float angle = signedAngle(direction) * RAD2DEG;
+    RotateToAngle((int)angle);
+
+    distanceToGrid = (targetPos - position.position).length();
+    MoveState = MovingToGridPos;
+}
+
 void MotorController::RotateToAngle(int wantedAngle) {
     targetAngle = wantedAngle % 360;
     SetRpm(40); 
@@ -77,6 +96,7 @@ void MotorController::RotateDegrees(int degrees) {
 }
 
 void MotorController::UpdateMotor(float dt, RobotPosition position) {
+    this->position = position;
     if (targetRpm <= 0) return;
 
     switch(moveState) {
