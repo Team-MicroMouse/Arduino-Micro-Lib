@@ -8,6 +8,7 @@
 class MicroLib {
 public:
     ~MicroLib() = default;
+    void update();
 
     TofSensor CreateTof(uint8_t channel);
     Gyro CreateGyro(uint8_t channel);

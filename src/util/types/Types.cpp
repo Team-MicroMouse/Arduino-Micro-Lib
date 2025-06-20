@@ -1,5 +1,11 @@
 #include "Types.h"
 
+
+
+float deltaAngle(float a, float b) {
+    return fmod((b - a + 540.0f), 360.0f) - 180.0f;
+}
+
 // v2i
 v2i v2i::up() { return v2i(0, 1); }
 v2i v2i::down() { return v2i(0, -1); }

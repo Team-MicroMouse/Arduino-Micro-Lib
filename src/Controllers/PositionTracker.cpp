@@ -45,6 +45,10 @@ void PositionTracker::ResetPosition() {
     distance = 0.0f;
 }
 
+void PositionTracker::ResetDistance() {
+    distance = 0.0f;
+}
+
 void PositionTracker::ResetGyro() {
     if (gyro) {
         gyro->Reset();

@@ -122,9 +122,12 @@ int Motor::currentThrottle() {
     return throttle;
 }
 
-void Motor::SetThrottle(int throttle) {
+void Motor::setDirection(bool forward) {
+    digitalWrite(dirChannel, forward ? HIGH : LOW);
+}
+
+void Motor::setThrottle(int throttle) {
     this->throttle = constrain(throttle, 0, maxThrottle);
-    digitalWrite(dirChannel, (throttle >= 0) ? HIGH : LOW);
     analogWrite(pwmChannel, abs(throttle));
 }
 

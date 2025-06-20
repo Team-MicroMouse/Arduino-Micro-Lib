@@ -41,7 +41,11 @@ class IPositionTracker {
     public:
         virtual ~IPositionTracker() = default;
         virtual void Setup() = 0;
-        virtual void Process() = 0; 
+        virtual void Process() = 0;
+        virtual SetGyro(Gyro* gyro) = 0;
+        virtual ResetDistance() = 0;
+        virtual ResetPosition() = 0;
+        virtual ResetGyro() = 0; 
 };
 
 class IObjectDetectorAlgorithm {
@@ -71,9 +75,10 @@ class MotorController : IMotorController {
             rMotor = rightMotor;
         }
 
-        void SetTofSensors(TofSensor* leftSensor, TofSensor* rightSensor) {
+        void SetTofSensors(TofSensor* leftSensor, TofSensor* rightSensor, TofSensor* frontSensor) {
             lTof = leftSensor;
             rTof = rightSensor;
+            fTof = frontSensor;
         }
 
         v3f pid {0.0f, 0.0f, 0.0f};
@@ -81,24 +86,29 @@ class MotorController : IMotorController {
 
     private:
         float SideCorrection(float dt, int lSensor, int rSensor);
-        void UpdateMotor(float dt, RobotPosition position);
-        float AngleDifference(int a, int b);
+        void EnterIdle();
+        void EnterMoving(float distance);
+        float AngleDifference(int fa, int b);
 
-        RobotPosition position;
         MoveState moveState = Idle;
         Motor* lMotor = nullptr;
         Motor* rMotor = nullptr;
         TofSensor* lTof = nullptr;
         TofSensor* rTof = nullptr;
-        int gyroAngle = 0;
+        TofSensor* fTof = nullptr;
+        uint8_t fhs = 0, lhs = 0, rhs = 0;
+        bool isPaused = false;
+        float turnTollerance = 0.5f; // degrees
         int targetAngle = 0;
+        v2f lastPos = {0.0f, 0.0f};
+        v2i gridPos = {0, 0};
+        v2i targetGridPos = {0, 0};
         float distanceCovered = 0.0f;
-        float distanceToGrid = 0.0f;
         float targetDistance = 0.0f;
         int targetRpm = 0, wantedRpm = 0;
-        float prevErrorR, prevErrorL, prevErrorT;
-        float integralR, integralL, integralT;
-        float integralSat = 1.0f, integralTSat = 1.5f;
+        float prevErrorR, prevErrorL;
+        float integralR, integralL;
+        float integralSat = 1.0f;
         float prevSideError, integralSide;
         
 };
@@ -110,9 +120,10 @@ class PositionTracker : IPositionTracker {
 
         void Setup() override;
         void Process() override;
-        void SetGyro(Gyro* gyro);
-        void ResetPosition();
-        void ResetGyro();
+        void SetGyro(Gyro* gyro) override;
+        void ResetDistance() override;
+        void ResetPosition() override;
+        void ResetGyro() override;
 
 
         RobotPosition GetPosition() const;

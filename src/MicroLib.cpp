@@ -1,5 +1,9 @@
 #include "MicroLib.h"
 
+void MicroLib::update() {
+
+}
+
 TofSensor MicroLib::CreateTof(uint8_t channel) {
     TofSensor sensor;
     if (sensor.Setup(channel)) {

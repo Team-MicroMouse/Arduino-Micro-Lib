@@ -5,31 +5,100 @@ void MotorController::Setup() {
 }
 
 void MotorController::UpdateMoveState(float dt, RobotPosition position) {
-    gyroAngle = position.angle; 
+    gridPos = position.gridPos;
+    fhs = fTof->ReadValue();
+    fhs = fhs < 255 ? fhs : 0; 
 
-    switch(moveState) {
-        case Moving:
+    switch (moveState) {
+        case Idle: {
+            if (isPaused) {
+                lMotor->SetThrottle(0);
+                rMotor->SetThrottle(0);
+                return;
+            }
+
+            float angle = -v2f::signedAngle({0, 1}, (targetGridPos - gridPos));
+            if (abs(deltaAngle(targetAngle, angle)) > turnTollerance) {
+                targetAngle = constrain((angle + 360) % 360, 0, 359);
+                moveState = Turning;
+                break;
+            }
+
+            float distance = (position.position - position.gridPos.toV2f()).length() + 2.0f; // 2cm tolerance
+            if (distance > 0.1f) {
+                EnterMoving(distance);
+            }
+            break;
+        }
+        case Moving: {
+            distanceCovered += (position.position - lastPos).length();
+            lastPos = position.position;
+
             if (distanceCovered >= targetDistance) {
-                moveState = Idle;
-            } 
-            break;
+                EnterIdle();
+                break;
+            }
 
-        case Turning:
-            if (abs(prevErrorT) < 0.2f) {
-                moveState = Idle;
+            if (fhs < 35 && fhs > 10) {
+                EnterIdle();
+                break;
+            }
+
+            float errorL = wantedRpm - lMotor->currentThrottle();
+            integralL = constrain(integralL + errorL * dt, -integralSat, integralSat);
+            float derivativeL = (errorL - prevErrorL) / dt;
+            float outputL = pid.x * errorL + pid.y * integralL + pid.x * derivativeL; 
+            outputL = constrain(outputL - sideCorrection, -lMotor->maxThrotthle(), lMotor->maxThrotthle());
+            prevErrorL = errorL;
+
+            float errorR = wantedRpm - rMotor->currentThrottle();
+            integralR = constrain(integralR + errorR * dt, -integralSat, integralSat);
+            float derivativeR = (errorR - prevErrorR) / dt;
+            float outputR = pid.x * errorR + pid.y * integralR + pid.z * derivativeR;
+            outputR = constrain(outputR + sideCorrection, -rMotor->maxThrotthle(), rMotor->maxThrotthle());
+            prevErrorR = errorR;
+
+            rMotor->setDirection(true); // forward
+            lMotor->setDirection(false); // backward
+
+            lMotor->SetThrottle(round(outputL));
+            rMotor->SetThrottle(round(outputR));
+            break;
+        }
+        case Turning: {
+            int robotAngle = position.angle;
+            robotAngle >= 360 ? 0 : robotAngle;
+            if (robotAngle > targetAngle - turnTollerance && robotAngle < targetAngle + turnTollerance) {
+                EnterIdle();
+                break;
+            } else {
+                float angleError = AngleDifference(robotAngle, targetAngle);
+
+                int throttle = round(abs(angleError));
+                throttle = constrain(throttle, 0, lMotor->maxThrotthle);
+
+                int dir = angleError >= 0 ? 1 : 0;
+                lMotor->setDirection(dir < 1);
+                lMotor->SetThrottle(throttle);
+
+                rMotor->setDirection(dir > 0);
+                rMotor->SetThrottle(throttle);
             }
             break;
-        case MovingToGridPos: 
-            if (abs(prevErrorT) < 0.2f) {
-                if (distanceToGrid < 0.1f) moveState = Idle;
-
-                MoveDistance(distanceToGrid);
-            }
-            break;
-        case Idle:
-            wantedRpm = 0; 
-            break;
+        }
     }
+}
+
+void MotorController::EnterIdle() {
+    moveState = Idle;
+    lMotor->SetThrottle(0);
+    rMotor->SetThrottle(0);
+}
+
+void MotorController::EnterMoving(float distance) {
+    targetDistance = distance;
+    distanceCovered = 0.0f;
+    moveState = Moving;
 }
 
 MotorController::MoveState MotorController::GetMoveState() {
@@ -93,56 +162,6 @@ void MotorController::RotateDegrees(int degrees) {
     targetAngle = new_angle;
     SetRpm(40);
     moveState = Turning;
-}
-
-void MotorController::UpdateMotor(float dt, RobotPosition position) {
-    this->position = position;
-    if (targetRpm <= 0) return;
-
-    switch(moveState) {
-        case Turning: {
-            float errorT = AngleDifference(gyroAngle, targetAngle);
-            integralT = constrain(integralT + errorT * dt, -integralTSat, integralTSat);
-            float derivativeT = (errorT - prevErrorT) / dt;
-            float outputT = pid.z * errorT + pid.y * integralT + pid.x * derivativeT; 
-            prevErrorT = errorT;
-
-            int throttle = round(abs(outputT));
-            int dir = outputT >= 0 ? 1: -1;
-
-            lMotor->SetThrottle(-dir * throttle);
-            rMotor->SetThrottle(dir * throttle);
-            }
-            break;
-        case Moving: {
-            float sideCorrection = SideCorrection(dt, position.position.x, position.position.y);
-
-
-            float errorL = wantedRpm - lMotor->currentThrottle();
-            integralL = constrain(integralL + errorL * dt, -integralSat, integralSat);
-            float derivativeL = (errorL - prevErrorL) / dt;
-            float outputL = pid.x * errorL + pid.y * integralL + pid.x * derivativeL; 
-            outputL = constrain(outputL - sideCorrection, -lMotor->maxThrotthle(), lMotor->maxThrotthle());
-            prevErrorL = errorL;
-
-            float errorR = wantedRpm - rMotor->currentThrottle();
-            integralR = constrain(integralR + errorR * dt, -integralSat, integralSat);
-            float derivativeR = (errorR - prevErrorR) / dt;
-            float outputR = pid.x * errorR + pid.y * integralR + pid.z * derivativeR;
-            outputR = constrain(outputR + sideCorrection, -rMotor->maxThrotthle(), rMotor->maxThrotthle());
-            prevErrorR = errorR;
-
-            lMotor->SetThrottle(round(outputL));
-            rMotor->SetThrottle(round(outputR));
-            }   
-            break;
-        case Idle:{
-            prevErrorL = 0.0f;
-            prevErrorR = 0.0f;
-            prevErrorT = 0.0f;
-            }
-            break;
-    }
 }
 
 float MotorController::SideCorrection(float dt, int lSensor, int rSensor) {

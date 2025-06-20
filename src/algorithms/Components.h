@@ -22,7 +22,8 @@ class IMotor {
         virtual ~IMotor() = default;
         virtual void Setup(uint8_t pwmChannel, uint8_t dirChannel) = 0;
         virtual int currentThrottle() = 0;
-        virtual void SetThrottle(int throttle) = 0;
+        virtual void setDirection(bool forward) = 0;
+        virtual void setThrottle(int throttle) = 0;
         virtual int maxThrotthle() = 0;
     private: 
         uint8_t pwmChannel;
@@ -85,7 +86,8 @@ class Motor: IMotor {
         virtual ~Motor() = default;
         virtual void Setup(uint8_t pwmChannel, uint8_t dirChannel) override;
         int currentThrottle() override;
-        void SetThrottle(int throttle) override;
+        void setDirection(bool forward) override;
+        void setThrottle(int throttle) override;
         int maxThrotthle() override;
 
     private:
