@@ -9,7 +9,6 @@ const float DEG2RAD = PI / 180.0f;
 const float RAD2DEG = 180.0f / PI;
 const int CELL_SIZE = 180;
 const float CELL_SIZE_F = (float)(CELL_SIZE);
-static float deltaAngle(float a, float b);
 
 struct v2f;
 struct v3f;
@@ -58,6 +57,7 @@ struct v2f {
     float dot(v2f rhs) const;
     float det(v2f rhs) const;
     float signedAngle(v2f rhs) const;
+    static float signedAngleUp(const v2f& from, const v2f& to);
 
     v2f operator+(const v2f & b) const;
     v2f operator-(const v2f & b) const;

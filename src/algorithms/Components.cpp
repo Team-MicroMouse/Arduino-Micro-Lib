@@ -14,11 +14,11 @@ bool Gyro::Setup(uint8_t channel) {
     delay(5);
     MPSelect(channel);
     bool success = sensor.begin();
-    bias = calibrateGyro(250, sensor);
+    bias = CalibrateGyro(250, sensor);
     return success;
 }
 
-float CalibrateGyro(int samples, Adafruit_MPU6050 &sensor) {
+float Gyro::CalibrateGyro(int samples, Adafruit_MPU6050 &sensor) {
     long sum = 0; 
     for (int i = 0; i < samples; i++) {
       sensors_event_t a, g, temp;
@@ -49,6 +49,12 @@ uint8_t Gyro::ReadValue() {
     totalAngle = Wrap360(totalAngle);
 
     return (int)totalAngle;
+}
+
+void Gyro::Reset() {
+    totalAngle = 0.0f;
+    lastTime = micros();
+    bias = CalibrateGyro(250, sensor);
 }
 
 uint8_t Gyro::ReadStatus() {

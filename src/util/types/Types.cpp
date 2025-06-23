@@ -1,11 +1,5 @@
 #include "Types.h"
 
-
-
-float deltaAngle(float a, float b) {
-    return fmod((b - a + 540.0f), 360.0f) - 180.0f;
-}
-
 // v2i
 v2i v2i::up() { return v2i(0, 1); }
 v2i v2i::down() { return v2i(0, -1); }
@@ -85,6 +79,11 @@ float v2f::det(v2f rhs) const {
 
 float v2f::signedAngle(v2f rhs) const {
     return atan2f(det(rhs), dot(rhs));
+}
+
+float v2f::signedAngleUp(const v2f& from, const v2f& to) {
+    float angleRad = atan2f(from.det(to), from.dot(to));
+    return angleRad * RAD2DEG;
 }
 
 v2f v2f::explode() const {

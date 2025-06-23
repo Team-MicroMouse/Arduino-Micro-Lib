@@ -42,10 +42,10 @@ class IPositionTracker {
         virtual ~IPositionTracker() = default;
         virtual void Setup() = 0;
         virtual void Process() = 0;
-        virtual SetGyro(Gyro* gyro) = 0;
-        virtual ResetDistance() = 0;
-        virtual ResetPosition() = 0;
-        virtual ResetGyro() = 0; 
+        virtual void SetGyro(Gyro gyro1) = 0;
+        virtual void ResetDistance() = 0;
+        virtual void ResetPosition() = 0;
+        virtual void ResetGyro() = 0; 
 };
 
 class IObjectDetectorAlgorithm {
@@ -89,6 +89,7 @@ class MotorController : IMotorController {
         void EnterIdle();
         void EnterMoving(float distance);
         float AngleDifference(int fa, int b);
+        float deltaAngleF(float a, float b);
 
         MoveState moveState = Idle;
         Motor* lMotor = nullptr;
@@ -98,6 +99,7 @@ class MotorController : IMotorController {
         TofSensor* fTof = nullptr;
         uint8_t fhs = 0, lhs = 0, rhs = 0;
         bool isPaused = false;
+        int gyroAngle = 0; // degrees
         float turnTollerance = 0.5f; // degrees
         int targetAngle = 0;
         v2f lastPos = {0.0f, 0.0f};
@@ -120,7 +122,7 @@ class PositionTracker : IPositionTracker {
 
         void Setup() override;
         void Process() override;
-        void SetGyro(Gyro* gyro) override;
+        void SetGyro(Gyro gyro1) override;
         void ResetDistance() override;
         void ResetPosition() override;
         void ResetGyro() override;

@@ -6,33 +6,36 @@ void MotorController::Setup() {
 
 void MotorController::UpdateMoveState(float dt, RobotPosition position) {
     gridPos = position.gridPos;
+    gyroAngle = position.angle;
     fhs = fTof->ReadValue();
     fhs = fhs < 255 ? fhs : 0; 
 
     switch (moveState) {
         case Idle: {
             if (isPaused) {
-                lMotor->SetThrottle(0);
-                rMotor->SetThrottle(0);
+                lMotor->setThrottle(0);
+                rMotor->setThrottle(0);
                 return;
             }
 
-            float angle = -v2f::signedAngle({0, 1}, (targetGridPos - gridPos));
-            if (abs(deltaAngle(targetAngle, angle)) > turnTollerance) {
-                targetAngle = constrain((angle + 360) % 360, 0, 359);
+            v2f targetGridPosF = (targetGridPos - gridPos).toV2f();
+            v2f up = {0, 1};
+            float angle = -v2f::signedAngleUp(up, targetGridPosF);
+            if (abs(deltaAngleF(targetAngle, angle)) > turnTollerance) { 
+                targetAngle = constrain(fmod(angle, 360.0f), 0.0f, 359.0f); 
                 moveState = Turning;
                 break;
             }
 
-            float distance = (position.position - position.gridPos.toV2f()).length() + 2.0f; // 2cm tolerance
+            float distance = (position.position - position.gridPos).length() * 180.0f + 2.0f; // 2cm tolerance
             if (distance > 0.1f) {
                 EnterMoving(distance);
             }
             break;
         }
         case Moving: {
-            distanceCovered += (position.position - lastPos).length();
-            lastPos = position.position;
+            distanceCovered += (position.position.toV2f() - lastPos).length();
+            lastPos = position.position.toV2f();
 
             if (distanceCovered >= targetDistance) {
                 EnterIdle();
@@ -43,6 +46,8 @@ void MotorController::UpdateMoveState(float dt, RobotPosition position) {
                 EnterIdle();
                 break;
             }
+
+            float sideCorrection = 0.0f; //placeholder.
 
             float errorL = wantedRpm - lMotor->currentThrottle();
             integralL = constrain(integralL + errorL * dt, -integralSat, integralSat);
@@ -61,12 +66,12 @@ void MotorController::UpdateMoveState(float dt, RobotPosition position) {
             rMotor->setDirection(true); // forward
             lMotor->setDirection(false); // backward
 
-            lMotor->SetThrottle(round(outputL));
-            rMotor->SetThrottle(round(outputR));
+            lMotor->setThrottle(round(outputL));
+            rMotor->setThrottle(round(outputR));
             break;
         }
         case Turning: {
-            int robotAngle = position.angle;
+            int robotAngle = gyroAngle;
             robotAngle >= 360 ? 0 : robotAngle;
             if (robotAngle > targetAngle - turnTollerance && robotAngle < targetAngle + turnTollerance) {
                 EnterIdle();
@@ -75,14 +80,14 @@ void MotorController::UpdateMoveState(float dt, RobotPosition position) {
                 float angleError = AngleDifference(robotAngle, targetAngle);
 
                 int throttle = round(abs(angleError));
-                throttle = constrain(throttle, 0, lMotor->maxThrotthle);
+                throttle = constrain(throttle, 0, lMotor->maxThrotthle());
 
                 int dir = angleError >= 0 ? 1 : 0;
                 lMotor->setDirection(dir < 1);
-                lMotor->SetThrottle(throttle);
+                lMotor->setThrottle(throttle);
 
                 rMotor->setDirection(dir > 0);
-                rMotor->SetThrottle(throttle);
+                rMotor->setThrottle(throttle);
             }
             break;
         }
@@ -91,8 +96,8 @@ void MotorController::UpdateMoveState(float dt, RobotPosition position) {
 
 void MotorController::EnterIdle() {
     moveState = Idle;
-    lMotor->SetThrottle(0);
-    rMotor->SetThrottle(0);
+    lMotor->setThrottle(0);
+    rMotor->setThrottle(0);
 }
 
 void MotorController::EnterMoving(float distance) {
@@ -107,10 +112,10 @@ MotorController::MoveState MotorController::GetMoveState() {
 
 void MotorController::Stop() {
     moveState = Idle;
-    wantedRpm = 0;
-    
-    lMotor->SetThrottle(0);
-    rMotor->SetThrottle(0);
+    lMotor->setThrottle(0);
+    rMotor->setThrottle(0);
+
+    isPaused = true;
 }
 
 float MotorController::GetDistanceCovered() {
@@ -135,14 +140,8 @@ void MotorController::MoveDistance(float distance) {
 }
 
 void MotorController::MoveToGridPos(v2i target, float cellSize) {
-    v2f targetPos = v2f(target.x * cellSize, target.y * cellSize);
-    v2f direction (targetPos - position.gridPos).normalize();
-
-    float angle = signedAngle(direction) * RAD2DEG;
-    RotateToAngle((int)angle);
-
-    distanceToGrid = (targetPos - position.position).length();
-    MoveState = MovingToGridPos;
+    isPaused = false; 
+    targetGridPos = target;
 }
 
 void MotorController::RotateToAngle(int wantedAngle) {
@@ -181,4 +180,8 @@ float MotorController::SideCorrection(float dt, int lSensor, int rSensor) {
 
 float MotorController::AngleDifference(int a, int b) {
     return (a- b + 540) % 360 - 180;
+}
+
+float MotorController::deltaAngleF(float a, float b) {
+    return fmod((b - a + 540.0f), 360.0f) - 180.0f;
 }

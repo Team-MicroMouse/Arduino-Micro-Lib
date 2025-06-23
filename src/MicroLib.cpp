@@ -32,10 +32,10 @@ Encoder MicroLib::CreateEncoder(uint8_t channelA, uint8_t channelB, uint8_t ppr,
     return encoder;
 }
 
-MotorController MicroLib::motorController(Motor* leftMotor, Motor* rightMotor, TofSensor* leftSensor, TofSensor* rightSensor) {
+MotorController MicroLib::motorController(Motor* leftMotor, Motor* rightMotor, TofSensor* leftSensor, TofSensor* rightSensor, TofSensor* frontSensor) {
     MotorController controller;
     controller.SetMotors(leftMotor, rightMotor);
-    controller.SetTofSensors(leftSensor, rightSensor);
+    controller.SetTofSensors(leftSensor, rightSensor, frontSensor);
     return controller;
 }
 

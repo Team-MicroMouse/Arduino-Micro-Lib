@@ -38,7 +38,7 @@ class Gyro : ISensor {
         uint8_t ReadStatus() override;
         void Reset();
     private: 
-        float calibrateGyro(int samples, Adafruit_MPU6050 &sensor);
+        float CalibrateGyro(int samples, Adafruit_MPU6050 &sensor);
         float Wrap360(float angle);
 
         uint8_t channel;
