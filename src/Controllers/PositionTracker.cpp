@@ -1,8 +1,6 @@
 #include "../algorithms/Algorithms.h" 
 
 void PositionTracker::Setup() {
-    leftEncoder.Setup();
-    rightEncoder.Setup();
     robot.position = v2i(0, 0);
     robot.angle = 0;
     robot.gridPos = GetGridPos().roundToV2i();
@@ -14,7 +12,6 @@ void PositionTracker::SetGyro(Gyro gyro1) {
 }
 
 void PositionTracker::Process() {
-    
     float angle = gyro ? gyro->ReadValue() : 0.0f;
     float movement = (leftEncoder.distance + rightEncoder.distance) / 2.0f;
 

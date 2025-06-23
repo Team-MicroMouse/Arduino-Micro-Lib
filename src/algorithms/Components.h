@@ -62,6 +62,11 @@ class TofSensor : ISensor {
 
 class Encoder {
     public:
+        Encoder() 
+            : channelA(0), channelB(0), ppr(1.0f), circumference(1.0f), interval(100.0f),
+                speed(0.0f), distance(0.0f), pulses(0) {
+
+        }
         Encoder(uint8_t channelA, uint8_t channelB, float ppr, float circumference, float interval);
         void Setup();
         void Process();

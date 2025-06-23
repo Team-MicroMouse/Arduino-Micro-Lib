@@ -36,10 +36,15 @@ MotorController MicroLib::motorController(Motor* leftMotor, Motor* rightMotor, T
     MotorController controller;
     controller.SetMotors(leftMotor, rightMotor);
     controller.SetTofSensors(leftSensor, rightSensor, frontSensor);
+    controller.Setup();
     return controller;
 }
 
-PositionTracker MicroLib::positionTracker(Encoder leftEncoder, Encoder rightEncoder, float cellSize) {
-    return PositionTracker(leftEncoder, rightEncoder, cellSize);
+PositionTracker MicroLib::positionTracker(Encoder leftEncoder, Encoder rightEncoder, Gyro gyro, float cellSize) {
+    PositionTracker tracker;
+    tracker.SetEncoders(leftEncoder, rightEncoder, cellSize);
+    tracker.SetGyro(gyro);
+    tracker.Setup();
+    return tracker;
 }
 

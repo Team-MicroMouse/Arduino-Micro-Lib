@@ -16,7 +16,7 @@ public:
     Encoder CreateEncoder(uint8_t channelA, uint8_t channelB, uint8_t ppr, float circumference, float interval);
     
     MotorController motorController(Motor* leftMotor, Motor* rightMotor, TofSensor* leftSensor, TofSensor* rightSensor, TofSensor* frontSensor);
-    PositionTracker positionTracker(Encoder leftEncoder, Encoder rightEncodeer, float cellSize);
+    PositionTracker positionTracker(Encoder leftEncoder, Encoder rightEncoder, Gyro gyro, float cellSize);
 };
 
 #endif

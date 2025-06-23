@@ -117,10 +117,12 @@ class MotorController : IMotorController {
 
 class PositionTracker : IPositionTracker {
     public:
-        PositionTracker(Encoder leftEncoder, Encoder rightEncoder, float cellSize) 
-            : leftEncoder(leftEncoder), rightEncoder(rightEncoder), cellSize(cellSize) {}
-
         void Setup() override;
+        void SetEncoders(Encoder left, Encoder right, float cellSize) {
+            leftEncoder = left;
+            rightEncoder = right;
+            this->cellSize = cellSize;
+        }
         void Process() override;
         void SetGyro(Gyro gyro1) override;
         void ResetDistance() override;
