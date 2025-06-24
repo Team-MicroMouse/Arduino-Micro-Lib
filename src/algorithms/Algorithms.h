@@ -55,7 +55,7 @@ class IObjectDetectorAlgorithm {
         virtual void Process(int* map, v2i mapSize) = 0; 
 };
 
-class MotorController : IMotorController {
+class MotorController : public IMotorController {
     public:
         void Setup() override;
         void UpdateMoveState(float dt, RobotPosition position) override;
@@ -115,10 +115,10 @@ class MotorController : IMotorController {
         
 };
 
-class PositionTracker : IPositionTracker {
+class PositionTracker : public IPositionTracker {
     public:
         void Setup() override;
-        void SetEncoders(Encoder left, Encoder right, float cellSize) {
+        void SetEncoders(Encoder& left, Encoder& right, float cellSize) {
             leftEncoder = left;
             rightEncoder = right;
             this->cellSize = cellSize;

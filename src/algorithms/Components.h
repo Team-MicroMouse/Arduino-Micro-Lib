@@ -30,7 +30,7 @@ class IMotor {
         uint8_t dirChannel;
 };
 
-class Gyro : ISensor { 
+class Gyro : public ISensor { 
     public:
         ~Gyro() = default;
         bool Setup(uint8_t channel) override;
@@ -49,7 +49,7 @@ class Gyro : ISensor {
         float deadzone = 0.1f;
 };
 
-class TofSensor : ISensor {
+class TofSensor : public ISensor {
     public:
          ~TofSensor() = default;
         bool Setup(uint8_t channel) override;
@@ -86,7 +86,7 @@ class Encoder {
         float interval;
 };
 
-class Motor: IMotor {
+class Motor: public IMotor {
     public:
         virtual ~Motor() = default;
         virtual void Setup(uint8_t pwmChannel, uint8_t dirChannel) override;
@@ -99,7 +99,7 @@ class Motor: IMotor {
         uint8_t pwmChannel;
         uint8_t dirChannel;
         int throttle = 0;
-        int maxThrottle = 255;
+        int maxThrottle = 140;
 };
 
 void MPSelect(uint8_t channel);

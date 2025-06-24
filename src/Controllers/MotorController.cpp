@@ -135,6 +135,7 @@ void MotorController::SetRpm(int rpm) {
 }
 
 void MotorController::MoveDistance(float distance) {
+    
     targetDistance = distance;
     moveState = Moving;
 }
