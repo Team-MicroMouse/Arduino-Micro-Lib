@@ -10,13 +10,28 @@ public:
     ~MicroLib() = default;
     void update();
 
-    TofSensor CreateTof(uint8_t channel);
-    Gyro CreateGyro(uint8_t channel);
-    Motor CreateMotor(uint8_t pwmChannel, uint8_t dirChannel);
-    Encoder CreateEncoder(uint8_t channelA, uint8_t channelB, uint8_t ppr, float circumference, float interval);
+    TofSensor& CreateTof(uint8_t channel, const char* which);
+    Gyro& CreateGyro(uint8_t channel);
+    Motor& CreateMotor(uint8_t pwmChannel, uint8_t dirChannel, const char* which);
+    Encoder& CreateEncoder(uint8_t channelA, uint8_t channelB, float ppr, float circumference, float interval, const char* which);
+
+    MotorController& motorController(Motor* leftMotor, Motor* rightMotor, TofSensor* leftSensor, TofSensor* rightSensor, TofSensor* frontSensor);
+    PositionTracker& positionTracker(Encoder& leftEncoder, Encoder& rightEncoder, Gyro& gyro, float cellSize);
+
+private:
+    MotorController motorCtrl;
+    PositionTracker posTracker;
     
-    MotorController motorController(Motor* leftMotor, Motor* rightMotor, TofSensor* leftSensor, TofSensor* rightSensor, TofSensor* frontSensor);
-    PositionTracker positionTracker(Encoder leftEncoder, Encoder rightEncoder, Gyro gyro, float cellSize);
+    Motor leftMotor;
+    Motor rightMotor;
+
+    Encoder leftEncoder;
+    Encoder rightEncoder;
+
+    TofSensor lhs;
+    TofSensor rhs;
+    TofSensor fhs;
+    Gyro gyro;
 };
 
 #endif
